@@ -1,11 +1,30 @@
 extern crate bindgen;
 
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn main() {
-    println!("cargo:rustc-link-lib=nfs");
-
+    let link_static_env_if_any = env::var("LIBNFS_LINK_STATIC");
+    match link_static_env_if_any {
+        Ok(link_static) => {
+            if link_static == "true" {
+                println!("cargo:rustc-link-lib=static=nfs");
+            } else {
+                println!("cargo:rustc-link-lib=nfs"); 
+            }
+        },
+        Err(_) => {
+            println!("cargo:rustc-link-lib=nfs");
+        },
+    }
+    let libnfs_lib_path_if_any = env::var("LIBNFS_LIB_PATH");
+    match libnfs_lib_path_if_any {
+        Ok(lib_dir) => {
+            let lib_dir = Path::new(&lib_dir);
+            println!("cargo:rustc-link-search=native={}", lib_dir.display());
+        },
+        Err(_) => {},
+    }
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
