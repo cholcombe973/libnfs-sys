@@ -25,14 +25,27 @@ fn main() {
         },
         Err(_) => {},
     }
+
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
-    let bindings = bindgen::Builder::default()
+    let mut builder = bindgen::Builder::default()
     // The input header we would like to generate
     // bindings for.
-    .header("wrapper.h")
+    .header("wrapper.h");
+    
+    let libnfs_include_path_if_any = env::var("LIBNFS_INCLUDE_PATH");
+    match libnfs_include_path_if_any {
+        Ok(include_path) => {
+            let include_path = Path::new(&include_path);
+            builder = builder.clang_arg(format!("-I{}", include_path.display()));
+
+        },
+        Err(_) => {},
+    }
+
     //.blacklist_type("statvfs")
+    let bindings = builder
     // Finish the builder and generate the bindings.
     .generate()
     // Unwrap the Result and panic on failure.
